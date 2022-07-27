@@ -1,17 +1,20 @@
 package main
 
 import (
-  "net/http"
-  "fmt"
-  "log"
+	"log"
+	"net/http"
+
+	"example.com/recallcards/pkg/api"
+	"example.com/recallcards/pkg/cards"
+	"example.com/recallcards/pkg/storage"
 )
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-  fmt.Fprintf(w, "Hi")  
-}
-
 func main() {
-  http.HandleFunc("/", indexHandler)
+  rep := storage.NewMemoryRepository()
+  srv := cards.NewCardService(rep)
+  c := api.NewController(srv)
+
+  http.HandleFunc("/cards/create/", c.CreateCard)
   log.Fatal(http.ListenAndServe(":8080", nil))
 }
 

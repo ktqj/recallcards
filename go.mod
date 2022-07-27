@@ -1,3 +1,3 @@
-module example.com/sample_webapp
+module example.com/recallcards
 
 go 1.18
