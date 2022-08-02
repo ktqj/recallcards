@@ -1,2 +1,5 @@
 /bin
+/tmp
 .DS_Store
+.env
+.docker_env

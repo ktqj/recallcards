@@ -1,37 +1,72 @@
 package storage
 
 import (
+	"encoding/json"
 	"fmt"
-	"strconv"
+	"os"
 
 	"example.com/recallcards/pkg/cards"
+	// "github.com/rs/zerolog"
+	// "github.com/rs/zerolog/log"
 )
 
-var idGenerator = make(chan cards.CardId)
+type CardsByPhrase map[string]cards.Card
 
-func idCounter() {
-	for i := 0; ; i++ {
-		idGenerator <- cards.CardId(strconv.Itoa(i))
+
+func loadData(path string) (CardsByPhrase, error) {
+	f, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0755)
+	defer f.Close()
+
+	if err != nil {
+		return nil, fmt.Errorf("Cannot create data.json: %v", err)
 	}
+
+	data := make(CardsByPhrase)
+	err = json.NewDecoder(f).Decode(&data)
+
+	if err != nil {
+		return nil, fmt.Errorf("Error decoding data.json: %v", err)
+	}
+	return data, nil
 }
 
-func init() {
-	go idCounter()
-}
+func saveData(data CardsByPhrase, path string) error {
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0755)
+	defer f.Close()
 
-type mem struct {
-	st map[cards.CardId]cards.Card
-}
+	if err != nil {
+		return err
+	}
 
-func (cr *mem) Insert(c cards.Card) error {
-	c.ID = <-idGenerator
-	cr.st[c.ID] = c
-	fmt.Printf("%v", cr.st)
+	err = json.NewEncoder(f).Encode(data)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func NewMemoryRepository() *mem {
-	return &mem{st: make(map[cards.CardId]cards.Card)}
+type mem struct {
+	st CardsByPhrase
+	filepath string
+}
+
+func (cr *mem) Insert(c cards.Card) error {
+	cr.st[c.Phrase] = c
+	err := cr.Persist()
+	return err
+}
+
+func (cr *mem) Persist() error {
+	err := saveData(cr.st, cr.filepath)
+	return err
+}
+
+func NewMemoryRepository(filepath string) (*mem, error) {
+	data, err := loadData(filepath)
+	if err != nil {
+		return nil, err
+	}
+	return &mem{st: data, filepath: filepath}, nil
 }
 
 

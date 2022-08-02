@@ -1,18 +1,20 @@
 # syntax=docker/dockerfile:1
 FROM golang:1.18-alpine
 
+RUN mkdir /var/tmp/mem_storage
+
 RUN mkdir /app
 WORKDIR /app
 
-COPY go.mod /app
+COPY go.mod .
 # COPY go.sum .
 RUN go mod download
 
-COPY . /app
+COPY . .
 
-RUN go build /app/cmd/main.go
+RUN go build /app/cmd/http/main.go
 RUN mv /app/main /usr/local/bin/
 
 EXPOSE 8080
 
-CMD ["main"]
+CMD export $(cat /app/.docker_env) && main

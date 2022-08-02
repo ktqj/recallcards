@@ -7,16 +7,20 @@ import (
 	"example.com/recallcards/pkg/cards"
 )
 
-type Controller struct {
+type Controller interface {
+	CreateCardHandler(w http.ResponseWriter, r *http.Request)
+}
+
+type controller struct {
 	srv cards.CardService
 }
 
-func (c *Controller) CreateCard(w http.ResponseWriter, r *http.Request) {
+func (c *controller) CreateCardHandler(w http.ResponseWriter, r *http.Request) {
 	var d struct {
 		Phrase string `json:"phrase"`
 		Translation string `json:"translation"`
 	}
-	
+
 	err := json.NewDecoder(r.Body).Decode(&d)
 	if err != nil {
 		http.Error(w, "Invalid json body", http.StatusBadRequest)
@@ -40,6 +44,6 @@ func (c *Controller) CreateCard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewController(srv cards.CardService) *Controller {
-	return &Controller{srv: srv}
+func NewController(srv cards.CardService) *controller {
+	return &controller{srv: srv}
 }
