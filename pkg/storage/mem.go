@@ -2,7 +2,8 @@ package storage
 
 import (
 	"encoding/json"
-	"fmt"
+	// "fmt"
+	"io"
 	"os"
 
 	"example.com/recallcards/pkg/cards"
@@ -10,27 +11,25 @@ import (
 	// "github.com/rs/zerolog/log"
 )
 
-type CardsByPhrase map[string]cards.Card
 
-
-func loadData(path string) (CardsByPhrase, error) {
+func readJsonFile[K comparable] (path string) (map[K]cards.Card, error) {
 	f, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0755)
 	defer f.Close()
 
 	if err != nil {
-		return nil, fmt.Errorf("Cannot create data.json: %v", err)
+		return nil, err
 	}
 
-	data := make(CardsByPhrase)
+	data := make(map[K]cards.Card)
 	err = json.NewDecoder(f).Decode(&data)
 
-	if err != nil {
-		return nil, fmt.Errorf("Error decoding data.json: %v", err)
+	if err != nil && err != io.EOF {
+		return nil, err
 	}
 	return data, nil
 }
 
-func saveData(data CardsByPhrase, path string) error {
+func writeJsonFile[K comparable] (data map[K]cards.Card, path string) error {
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0755)
 	defer f.Close()
 
@@ -46,23 +45,22 @@ func saveData(data CardsByPhrase, path string) error {
 }
 
 type mem struct {
-	st CardsByPhrase
+	st map[string]cards.Card
 	filepath string
 }
 
 func (cr *mem) Insert(c cards.Card) error {
 	cr.st[c.Phrase] = c
-	err := cr.Persist()
-	return err
+	return cr.Persist()
 }
 
 func (cr *mem) Persist() error {
-	err := saveData(cr.st, cr.filepath)
+	err := writeJsonFile(cr.st, cr.filepath)
 	return err
 }
 
 func NewMemoryRepository(filepath string) (*mem, error) {
-	data, err := loadData(filepath)
+	data, err := readJsonFile[string](filepath)
 	if err != nil {
 		return nil, err
 	}
