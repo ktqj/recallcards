@@ -16,10 +16,7 @@ func readline(prompt string) (string, error) {
 	fmt.Fprintf(os.Stdout, prompt)
 	r := bufio.NewReader(os.Stdout)
 	input, err := r.ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-	return input, nil
+	return input, err
 }
 
 func initInMemRepository() cards.CardRepository {

@@ -3,8 +3,11 @@ package storage
 import (
 	"io/ioutil"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
+
+	"example.com/recallcards/pkg/cards"
 )
 
 func Test_readJsonFile(t *testing.T) {
@@ -16,13 +19,14 @@ func Test_readJsonFile(t *testing.T) {
 	path := tmpFile.Name()
 	defer os.Remove(path)
 
-	d, err := readJsonFile[string](path)
+	d, err := readJsonFile(path)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(d) != 0 {
-		t.Fatalf("Expected empty map, got %v", d)
+	emptryStorage := storage{Cards: make([]cards.Card, 0), Recalls: make([]cards.RecallAttempt, 0)}
+	if reflect.DeepEqual(d, emptryStorage) {
+		t.Fatalf("Expected %v, got %v", emptryStorage, d)
 	}
 
 	// Test malformed json
@@ -31,28 +35,28 @@ func Test_readJsonFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	d, err = readJsonFile[string](path)
+	d, err = readJsonFile(path)
 	if !strings.HasPrefix(err.Error(), "invalid character") {
 		t.Fatal(err)
 	}
 
-	if d != nil {
-		t.Fatalf("Expected nil map, got %v", d)
+	if reflect.DeepEqual(d, emptryStorage) {
+		t.Fatalf("Expected %v, got %v", emptryStorage, d)
 	}
 
 	// Test reading a mapped card
-	content := []byte(`{"wąs":{"ID":"","Phrase":"wąs","Translation":"усы","RecallAttempts":[],"Bucket":0,"Created_at":"2022-08-02T15:35:54.316447+02:00"}}`)
+	content := []byte(`{"cards":[{"ID":"","Phrase":"wąs","Translation":"усы","Bucket":0,"Created_at":"2022-08-02T15:35:54.316447+02:00"}],"recalls":null}`)
 	_, err = tmpFile.WriteAt(content, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	d, err = readJsonFile[string](path)
+	d, err = readJsonFile(path)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(d) != 1 {
+	if len(d.Cards) != 1 {
 		t.Fatalf("Expected map with 1 elem, got %v", d)
 	}
 
@@ -62,11 +66,11 @@ func Test_readJsonFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	d, err = readJsonFile[string](path)
+	d, err = readJsonFile(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(d) != 0 {
+	if reflect.DeepEqual(d, emptryStorage) {
 		t.Fatalf("Expecting empty map, got %v", d)
 	}
 
@@ -76,11 +80,11 @@ func Test_readJsonFile(t *testing.T) {
 	}
 
 	// Reading from non-existing directory
-	d, err = readJsonFile[string]("/nonexisting/directory/to/read/data.json")
+	d, err = readJsonFile("/nonexisting/directory/to/read/data.json")
 	if !os.IsNotExist(err) {
 		t.Fatal(err)
 	}
-	if d != nil {
+	if reflect.DeepEqual(d, emptryStorage) {
 		t.Fatalf("Expecting nil map, got %v", d)
 	}
 }

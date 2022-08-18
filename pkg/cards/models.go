@@ -24,7 +24,6 @@ type Card struct {
   ID CardId
   Phrase string
   Translation string
-  RecallAttempts []RecallAttempt
   Bucket BucketId
   Created_at time.Time
 }

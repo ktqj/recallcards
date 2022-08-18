@@ -14,24 +14,24 @@ import (
 )
 
 
-func readJsonFile[K comparable] (path string) (map[K]cards.Card, error) {
+func readJsonFile(path string) (storage, error) {
 	f, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0755)
 	if err != nil {
-		return nil, err
+		return storage{}, err
 	}
 	defer f.Close()
 
-	data := make(map[K]cards.Card)
+	var data storage
 	err = json.NewDecoder(f).Decode(&data)
 
 	if err != nil && err != io.EOF {
-		return nil, err
+		return storage{}, err
 	}
 	return data, nil
 }
 
-func writeJsonFile[K comparable] (data map[K]cards.Card, path string) error {
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0755)
+func writeJsonFile(data storage, path string) error {
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
 		return err
 	}
@@ -44,21 +44,25 @@ func writeJsonFile[K comparable] (data map[K]cards.Card, path string) error {
 	return nil
 }
 
-type mem struct {
-	st map[string]cards.Card
+type storage struct {
+	Cards []cards.Card `json:"cards"`
+	Recalls []cards.RecallAttempt `json:"recalls"`
+}
+
+type repository struct {
+	storage
 	filepath string
 }
 
-func (cr *mem) Insert(c cards.Card) error {
-	cr.st[c.Phrase] = c
-	return cr.persist()
+func (rep *repository) Insert(c cards.Card) error {
+	rep.storage.Cards = append(rep.storage.Cards, c)
+	return rep.persist()
 }
 
-func (cr *mem) ListUsedBuckets() ([]cards.BucketId, error) {
+func (rep *repository) ListUsedBuckets() ([]cards.BucketId, error) {
 	buckets := make(map[cards.BucketId]struct{})
-	for ph := range cr.st {
-		c := cr.st[ph]
-		buckets[c.Bucket] = struct{}{}
+	for i := 0; i < len(rep.storage.Cards); i++ {
+		buckets[rep.storage.Cards[i].Bucket] = struct{}{}
 	}
 
 	res := make([]cards.BucketId, len(buckets))
@@ -70,47 +74,49 @@ func (cr *mem) ListUsedBuckets() ([]cards.BucketId, error) {
 	return res, nil
 }
 
-func (cr *mem) countByBucket(b cards.BucketId) int {
+func (rep *repository) countByBucket(b cards.BucketId) int {
 	count := 0
-	for ph := range cr.st {
-		c := cr.st[ph]
-		if c.Bucket == b {
+	for i := 0; i < len(rep.storage.Cards); i++ {
+		if rep.storage.Cards[i].Bucket == b {
 			count++
 		}
 	}
 	return count
 }
 
-func (cr *mem) RandomByBucket(b cards.BucketId) (cards.Card, error) {
-	count := cr.countByBucket(b)
+func (rep *repository) RandomByBucket(b cards.BucketId) (cards.Card, error) {
+	count := rep.countByBucket(b)
 	picked := rand.Intn(count)
 
-	i := 0
-	for ph := range cr.st {
-		c := cr.st[ph]
-		if c.Bucket != b {
+	j := 0
+	for i := 0; i < len(rep.storage.Cards); i++ {
+		if rep.storage.Cards[i].Bucket != b {
 			continue
 		}
-		if i != picked {
-			i++
+		if j != picked {
+			j++
 			continue
 		}
-		return c, nil
+		return rep.storage.Cards[i], nil
 	}
 	return cards.Card{}, nil
 }
 
-func (cr *mem) persist() error {
-	err := writeJsonFile(cr.st, cr.filepath)
+func (rep *repository) persist() error {
+	err := writeJsonFile(rep.storage, rep.filepath)
 	return err
 }
 
-func NewMemoryRepository(filepath string) (*mem, error) {
-	data, err := readJsonFile[string](filepath)
+func NewMemoryRepository(filepath string) (*repository, error) {
+	data, err := readJsonFile(filepath)
 	if err != nil {
 		return nil, err
 	}
-	return &mem{st: data, filepath: filepath}, nil
+	rep := repository{
+		storage: data,
+		filepath: filepath,
+	}
+	return &rep, nil
 }
 
 

@@ -27,7 +27,6 @@ func (cs *cardService) Create(phrase string, translation string) error {
     Phrase: phrase,
     Translation: translation,
     Created_at: time.Now(),
-    RecallAttempts: []RecallAttempt{},
     Bucket: DefaultBucket,
   }
   return cs.repo.Insert(c)
