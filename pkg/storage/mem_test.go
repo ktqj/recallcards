@@ -10,10 +10,11 @@ import (
 func Test_readJsonFile(t *testing.T) {
 	// Test reading from an empty file
 	tmpFile, err := ioutil.TempFile("", "data.json")
-	path := tmpFile.Name()
 	if err != nil {
 		t.Fatal(err)
 	}
+	path := tmpFile.Name()
+	defer os.Remove(path)
 
 	d, err := readJsonFile[string](path)
 	if err != nil {
@@ -25,7 +26,11 @@ func Test_readJsonFile(t *testing.T) {
 	}
 
 	// Test malformed json
-	tmpFile.Write([]byte("{====}"))
+	_, err = tmpFile.Write([]byte("{====}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	d, err = readJsonFile[string](path)
 	if !strings.HasPrefix(err.Error(), "invalid character") {
 		t.Fatal(err)
@@ -37,7 +42,11 @@ func Test_readJsonFile(t *testing.T) {
 
 	// Test reading a mapped card
 	content := []byte(`{"wąs":{"ID":"","Phrase":"wąs","Translation":"усы","RecallAttempts":[],"Bucket":0,"Created_at":"2022-08-02T15:35:54.316447+02:00"}}`)
-	tmpFile.WriteAt(content, 0)
+	_, err = tmpFile.WriteAt(content, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	d, err = readJsonFile[string](path)
 	if err != nil {
 		t.Fatal(err)

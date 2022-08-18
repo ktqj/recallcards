@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	// "fmt"
+
 	// "os"
 	// "os/signal"
 
@@ -40,14 +42,21 @@ func NewServer(c api.Controller) *server {
 	return s
 }
 
-func main() {
+func initInMemRepository() cards.CardRepository {
 	memFilePath := os.Getenv("MEM_STORAGE_JSON_FILE_PATH")
-	repository, err := storage.NewMemoryRepository(memFilePath)
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize repository")
-		return
+	if memFilePath == "" {
+		log.Fatal().Msgf("No file path provided under MEM_STORAGE_JSON_FILE_PATH var")
 	}
 
+	rep, err := storage.NewMemoryRepository(memFilePath)
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Could not initialize repository")
+	}
+	return rep
+}
+
+func main() {
+	repository := initInMemRepository()
 	cardService := cards.NewCardService(repository)
   controller := api.NewController(cardService)
 
@@ -55,7 +64,7 @@ func main() {
 
 
   httpServer := &http.Server{
-      Addr:         "0.0.0.0:8080",
+      Addr:         "127.0.0.1:8080",
       WriteTimeout: time.Second * 15,
       ReadTimeout:  time.Second * 15,
       IdleTimeout:  time.Second * 60,
