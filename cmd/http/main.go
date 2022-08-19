@@ -21,7 +21,7 @@ import (
 )
 
 type server struct {
-	c api.Controller
+	c      api.Controller
 	router *mux.Router
 }
 
@@ -35,7 +35,7 @@ func (s *server) routes() {
 
 func NewServer(c api.Controller) *server {
 	s := &server{
-		c: c,
+		c:      c,
 		router: mux.NewRouter(),
 	}
 	s.routes()
@@ -58,19 +58,18 @@ func initInMemRepository() cards.CardRepository {
 func main() {
 	repository := initInMemRepository()
 	cardService := cards.NewCardService(repository)
-  controller := api.NewController(cardService)
+	controller := api.NewController(cardService)
 
-  srv := NewServer(controller)
+	srv := NewServer(controller)
 
-
-  httpServer := &http.Server{
-      Addr:         "127.0.0.1:8080",
-      WriteTimeout: time.Second * 15,
-      ReadTimeout:  time.Second * 15,
-      IdleTimeout:  time.Second * 60,
-      Handler: srv, // Pass our instance of gorilla/mux in.
-  }
-  httpServer.RegisterOnShutdown(func() {
+	httpServer := &http.Server{
+		Addr:         "127.0.0.1:8080",
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      srv, // Pass our instance of gorilla/mux in.
+	}
+	httpServer.RegisterOnShutdown(func() {
 		log.Debug().Msg("shutdown callback")
 		time.Sleep(10 * time.Second)
 	})
@@ -94,11 +93,10 @@ func main() {
 	// 	close(idleConnsClosed)
 	// }()
 
-  if err := httpServer.ListenAndServe(); err != nil {
-    log.Fatal().Err(err).Msg("httpServer exited")
+	if err := httpServer.ListenAndServe(); err != nil {
+		log.Fatal().Err(err).Msg("httpServer exited")
 	}
 	// time.Sleep(10 * time.Second)
 	// log.Debug().Msg("listenandserve unblocked")
 	// <-idleConnsClosed
 }
-

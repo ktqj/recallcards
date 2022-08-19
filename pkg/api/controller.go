@@ -17,7 +17,7 @@ type controller struct {
 
 func (c *controller) CreateCardHandler(w http.ResponseWriter, r *http.Request) {
 	var d struct {
-		Phrase string `json:"phrase"`
+		Phrase      string `json:"phrase"`
 		Translation string `json:"translation"`
 	}
 

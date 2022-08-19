@@ -13,7 +13,6 @@ import (
 	// "github.com/rs/zerolog/log"
 )
 
-
 func readJsonFile(path string) (storage, error) {
 	f, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0755)
 	if err != nil {
@@ -70,7 +69,7 @@ func (objects Recalls) append(r cards.RecallAttempt) Recalls {
 }
 
 type storage struct {
-	Cards Cards `json:"cards"`
+	Cards   Cards   `json:"cards"`
 	Recalls Recalls `json:"recalls"`
 }
 
@@ -142,7 +141,6 @@ func (rep *repository) countByBucket(b cards.BucketId) int {
 	return count
 }
 
-
 func (rep *repository) persist() error {
 	err := writeJsonFile(rep.storage, rep.filepath)
 	return err
@@ -154,10 +152,8 @@ func NewRepository(filepath string) (*repository, error) {
 		return nil, err
 	}
 	rep := repository{
-		storage: data,
+		storage:  data,
 		filepath: filepath,
 	}
 	return &rep, nil
 }
-
-
