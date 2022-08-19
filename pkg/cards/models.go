@@ -15,15 +15,16 @@ const (
 )
 
 type RecallAttempt struct {
-  ts time.Time
-  success bool
+  RecordedAt time.Time
+  Success bool
+  CardId CardId
 }
 
-type CardId string
+type CardId int
 type Card struct {
   ID CardId
   Phrase string
   Translation string
   Bucket BucketId
-  Created_at time.Time
+  CreatedAt time.Time
 }

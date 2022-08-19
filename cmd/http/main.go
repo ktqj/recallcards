@@ -14,7 +14,7 @@ import (
 
 	"example.com/recallcards/pkg/api"
 	"example.com/recallcards/pkg/cards"
-	"example.com/recallcards/pkg/storage"
+	"example.com/recallcards/pkg/storage/file"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
@@ -48,7 +48,7 @@ func initInMemRepository() cards.CardRepository {
 		log.Fatal().Msgf("No file path provided under MEM_STORAGE_JSON_FILE_PATH var")
 	}
 
-	rep, err := storage.NewMemoryRepository(memFilePath)
+	rep, err := file.NewRepository(memFilePath)
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Could not initialize repository")
 	}

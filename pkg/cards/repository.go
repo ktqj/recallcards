@@ -1,8 +1,10 @@
 package cards
 
 type CardRepository interface {
-	Insert(c Card) error
+	InsertCard(c Card) error
+	InsertRecallAttempt(r RecallAttempt) error
 	ListUsedBuckets() ([]BucketId, error)
 	// CountByBucket(b BucketId) (int, error)
-	RandomByBucket(b BucketId) (Card, error)
+	RandomCardByBucket(b BucketId) (Card, error)
+	CountRecallAttempts(cid CardId) int
 }

@@ -1,4 +1,4 @@
-package storage
+package file
 
 import (
 	"encoding/json"
@@ -44,9 +44,34 @@ func writeJsonFile(data storage, path string) error {
 	return nil
 }
 
+type Cards []cards.Card
+
+func (objects Cards) getNextID() cards.CardId {
+	maxID := cards.CardId(0)
+	for i := 0; i < len(objects); i++ {
+		id := objects[i].ID
+		if id > maxID {
+			maxID = id
+		}
+	}
+	maxID++
+	return maxID
+}
+
+func (objects Cards) append(c cards.Card) Cards {
+	c.ID = objects.getNextID()
+	return append(objects, c)
+}
+
+type Recalls []cards.RecallAttempt
+
+func (objects Recalls) append(r cards.RecallAttempt) Recalls {
+	return append(objects, r)
+}
+
 type storage struct {
-	Cards []cards.Card `json:"cards"`
-	Recalls []cards.RecallAttempt `json:"recalls"`
+	Cards Cards `json:"cards"`
+	Recalls Recalls `json:"recalls"`
 }
 
 type repository struct {
@@ -54,9 +79,24 @@ type repository struct {
 	filepath string
 }
 
-func (rep *repository) Insert(c cards.Card) error {
-	rep.storage.Cards = append(rep.storage.Cards, c)
+func (rep *repository) InsertCard(c cards.Card) error {
+	rep.storage.Cards = rep.storage.Cards.append(c)
 	return rep.persist()
+}
+
+func (rep *repository) InsertRecallAttempt(r cards.RecallAttempt) error {
+	rep.storage.Recalls = rep.storage.Recalls.append(r)
+	return rep.persist()
+}
+
+func (rep *repository) CountRecallAttempts(cid cards.CardId) int {
+	count := 0
+	for i := 0; i < len(rep.storage.Recalls); i++ {
+		if rep.storage.Recalls[i].Success {
+			count++
+		}
+	}
+	return count
 }
 
 func (rep *repository) ListUsedBuckets() ([]cards.BucketId, error) {
@@ -74,17 +114,7 @@ func (rep *repository) ListUsedBuckets() ([]cards.BucketId, error) {
 	return res, nil
 }
 
-func (rep *repository) countByBucket(b cards.BucketId) int {
-	count := 0
-	for i := 0; i < len(rep.storage.Cards); i++ {
-		if rep.storage.Cards[i].Bucket == b {
-			count++
-		}
-	}
-	return count
-}
-
-func (rep *repository) RandomByBucket(b cards.BucketId) (cards.Card, error) {
+func (rep *repository) RandomCardByBucket(b cards.BucketId) (cards.Card, error) {
 	count := rep.countByBucket(b)
 	picked := rand.Intn(count)
 
@@ -102,12 +132,23 @@ func (rep *repository) RandomByBucket(b cards.BucketId) (cards.Card, error) {
 	return cards.Card{}, nil
 }
 
+func (rep *repository) countByBucket(b cards.BucketId) int {
+	count := 0
+	for i := 0; i < len(rep.storage.Cards); i++ {
+		if rep.storage.Cards[i].Bucket == b {
+			count++
+		}
+	}
+	return count
+}
+
+
 func (rep *repository) persist() error {
 	err := writeJsonFile(rep.storage, rep.filepath)
 	return err
 }
 
-func NewMemoryRepository(filepath string) (*repository, error) {
+func NewRepository(filepath string) (*repository, error) {
 	data, err := readJsonFile(filepath)
 	if err != nil {
 		return nil, err

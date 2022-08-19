@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM golang:1.18-alpine
 
-RUN mkdir /var/tmp/mem_storage
+RUN mkdir /var/tmp/file_storage
 
 RUN mkdir /app
 WORKDIR /app

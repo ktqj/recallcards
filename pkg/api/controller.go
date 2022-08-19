@@ -37,7 +37,7 @@ func (c *controller) CreateCardHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.srv.Create(d.Phrase, d.Translation)
+	err = c.srv.CreateCard(d.Phrase, d.Translation)
 	if err != nil {
 		http.Error(w, "Unable to create a card", http.StatusInternalServerError)
 		return
