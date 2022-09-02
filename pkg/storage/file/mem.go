@@ -2,7 +2,11 @@ package file
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io/fs"
 	"math/rand"
+	"path"
 
 	// "fmt"
 	"io"
@@ -13,8 +17,13 @@ import (
 	// "github.com/rs/zerolog/log"
 )
 
-func readJsonFile(path string) (storage, error) {
-	f, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0755)
+func readJsonFile(p string) (storage, error) {
+	f, err := os.OpenFile(p, os.O_RDONLY|os.O_CREATE, 0755)
+	if errors.Is(err, fs.ErrNotExist) {
+		pwd, _ := os.Getwd()
+		absPath := path.Join(pwd, p)
+		f, err = os.OpenFile(absPath, os.O_RDONLY|os.O_CREATE, 0755)
+	}
 	if err != nil {
 		return storage{}, err
 	}
@@ -79,6 +88,10 @@ type repository struct {
 }
 
 func (rep *repository) InsertCard(c cards.Card) error {
+	_, err := rep.findCardByPhrase(c.Phrase)
+	if err == nil {
+		return fmt.Errorf("Card with a phrase \"%s\" already exists", c.Phrase)
+	}
 	rep.storage.Cards = rep.storage.Cards.append(c)
 	return rep.persist()
 }
@@ -91,7 +104,8 @@ func (rep *repository) InsertRecallAttempt(r cards.RecallAttempt) error {
 func (rep *repository) CountRecallAttempts(cid cards.CardId) int {
 	count := 0
 	for i := 0; i < len(rep.storage.Recalls); i++ {
-		if rep.storage.Recalls[i].Success {
+		r := rep.storage.Recalls[i]
+		if r.CardId == cid && r.Success {
 			count++
 		}
 	}
@@ -146,7 +160,16 @@ func (rep *repository) persist() error {
 	return err
 }
 
-func NewRepository(filepath string) (*repository, error) {
+func (rep *repository) findCardByPhrase(phrase string) (cards.Card, error) {
+	for i := range rep.Cards {
+		if rep.Cards[i].Phrase == phrase {
+			return rep.Cards[i], nil
+		}
+	}
+	return cards.Card{}, errors.New("Not found")
+}
+
+func NewRepository(filepath string) (cards.CardRepository, error) {
 	data, err := readJsonFile(filepath)
 	if err != nil {
 		return nil, err

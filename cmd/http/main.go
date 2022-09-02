@@ -12,7 +12,7 @@ import (
 	// "os"
 	// "os/signal"
 
-	"example.com/recallcards/pkg/api"
+	"example.com/recallcards/pkg/web"
 	"example.com/recallcards/pkg/cards"
 	"example.com/recallcards/pkg/storage/file"
 
@@ -21,7 +21,7 @@ import (
 )
 
 type server struct {
-	c      api.Controller
+	c      web.Controller
 	router *mux.Router
 }
 
@@ -33,7 +33,7 @@ func (s *server) routes() {
 	s.router.HandleFunc("/cards/create/", s.c.CreateCardHandler)
 }
 
-func NewServer(c api.Controller) *server {
+func NewServer(c web.Controller) *server {
 	s := &server{
 		c:      c,
 		router: mux.NewRouter(),
@@ -58,7 +58,7 @@ func initInMemRepository() cards.CardRepository {
 func main() {
 	repository := initInMemRepository()
 	cardService := cards.NewCardService(repository)
-	controller := api.NewController(cardService)
+	controller := web.NewController(cardService)
 
 	srv := NewServer(controller)
 

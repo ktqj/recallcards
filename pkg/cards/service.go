@@ -1,16 +1,14 @@
 package cards
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
 
 type CardService interface {
 	CreateCard(phrase string, translation string) error
-	// ListBuckets() []BucketId
-	// GetRandomWeighted() Card
 	RandomCard() (Card, error)
-	// GetRandomByBucket(bid BucketId) Card
 	RecordRecallAttempt(cid CardId, result bool) error
 	CountRecallAttempts(cid CardId) int
 }
@@ -19,11 +17,19 @@ type cardService struct {
 	repo CardRepository
 }
 
-func NewCardService(repo CardRepository) *cardService {
+func NewCardService(repo CardRepository) CardService {
 	return &cardService{repo: repo}
 }
 
 func (cs *cardService) CreateCard(phrase string, translation string) error {
+	if phrase == "" {
+		return fmt.Errorf("No phrase is provided")
+	}
+
+	if translation == "" {
+		return fmt.Errorf("No translation is provided")
+	}
+
 	c := Card{
 		Phrase:      phrase,
 		Translation: translation,

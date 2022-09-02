@@ -4,6 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"math/rand"
+	// "runtime"
+	"time"
+
 	// "time"
 
 	"os"
@@ -34,8 +37,8 @@ func initFileRepository() cards.CardRepository {
 }
 
 func main() {
-	// rand.Seed(int64(time.Now().Nanosecond()))
-	rand.Seed(1)
+	rand.Seed(int64(time.Now().Nanosecond()))
+	// rand.Seed(1)
 
 	repository := initFileRepository()
 	cardService := cards.NewCardService(repository)

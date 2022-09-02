@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"example.com/recallcards/pkg/cards"
@@ -27,23 +28,14 @@ func (c *controller) CreateCardHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if d.Phrase == "" {
-		http.Error(w, "No phrase is provided", http.StatusBadRequest)
-		return
-	}
-
-	if d.Translation == "" {
-		http.Error(w, "No translation is provided", http.StatusBadRequest)
-		return
-	}
-
 	err = c.srv.CreateCard(d.Phrase, d.Translation)
 	if err != nil {
-		http.Error(w, "Unable to create a card", http.StatusInternalServerError)
+		msg := fmt.Sprintf("Unable to create a card: %s", err)
+		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
 }
 
-func NewController(srv cards.CardService) *controller {
+func NewController(srv cards.CardService) Controller {
 	return &controller{srv: srv}
 }
