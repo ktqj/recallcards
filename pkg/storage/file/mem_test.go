@@ -45,7 +45,7 @@ func Test_readJsonFile(t *testing.T) {
 	}
 
 	// Test reading a mapped card
-	content := []byte(`{"cards":[{"ID":"","Phrase":"wąs","Translation":"усы","Bucket":0,"Created_at":"2022-08-02T15:35:54.316447+02:00"}],"recalls":null}`)
+	content := []byte(`{"cards":[{"ID":1,"Phrase":"wąs","Translation":"усы","Bucket":0,"Created_at":"2022-08-02T15:35:54.316447+02:00"}],"recalls":null}`)
 	_, err = tmpFile.WriteAt(content, 0)
 	if err != nil {
 		t.Fatal(err)

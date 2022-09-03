@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Create a phrase card</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@2.1.0/build/pure-min.css" integrity="sha384-yHIFVG6ClnONEA5yB5DJXfW2/KC173DIQrYoZMEtBvGzmf0PKiGyNEqe9N6BNDBH" crossorigin="anonymous">
+        <style type="text/css">
+        </style>
+    </head>
+    <body>
+        <form style="width: 30em;" class="pure-form pure-form-aligned" method="post" action="/api/cards/form_create/">
+          <fieldset>
+              <div class="pure-control-group">
+                  <label for="phrase">Phrase</label>
+                  <textarea type="text" name="phrase" id="phrase" placeholder="Phrase"></textarea>
+              </div>
+              <div class="pure-control-group">
+                  <label for="translation">Translation</label>
+                  <textarea type="text" name="translation" id="translation" placeholder="Translation"></textarea>
+              </div>
+              </div>
+              <div class="pure-controls">
+                  <button type="submit" class="pure-button pure-button-primary">Create</button>
+              </div>
+          </fieldset>
+      </form>
+    </body>
+</html>

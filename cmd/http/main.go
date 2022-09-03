@@ -12,9 +12,9 @@ import (
 	// "os"
 	// "os/signal"
 
-	"example.com/recallcards/pkg/web"
 	"example.com/recallcards/pkg/cards"
 	"example.com/recallcards/pkg/storage/file"
+	"example.com/recallcards/pkg/web"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
@@ -30,7 +30,10 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) routes() {
-	s.router.HandleFunc("/cards/create/", s.c.CreateCardHandler)
+	s.router.HandleFunc("/", s.c.IndexHandler)
+
+	s.router.HandleFunc("/api/cards/form_create/", s.c.CreateCardForm)
+	s.router.HandleFunc("/api/cards/json_create/", s.c.CreateCardJson)
 }
 
 func NewServer(c web.Controller) *server {
