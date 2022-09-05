@@ -145,6 +145,23 @@ func (rep *repository) RandomCardByBucket(b cards.BucketId) (cards.Card, error) 
 	return cards.Card{}, nil
 }
 
+func (rep *repository) CardById(cid cards.CardId) (cards.Card, error) {
+	for i := range rep.Cards {
+		if rep.Cards[i].ID == cid {
+			return rep.Cards[i], nil
+		}
+	}
+	return cards.Card{}, errors.New("Not found")
+}
+
+func (rep *repository) ListCardIds() ([]cards.CardId, error) {
+	res := make([]cards.CardId, len(rep.Cards))
+	for i := range rep.Cards {
+		res[i] = rep.Cards[i].ID
+	}
+	return res, nil
+}
+
 func (rep *repository) countByBucket(b cards.BucketId) int {
 	count := 0
 	for i := 0; i < len(rep.storage.Cards); i++ {

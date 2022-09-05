@@ -3,12 +3,14 @@ package cards
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 )
 
 type CardService interface {
 	CreateCard(phrase string, translation string) error
 	RandomCard() (Card, error)
+	RandomCardGenerator() (<-chan Card, func())
 	RecordRecallAttempt(cid CardId, result bool) error
 	CountRecallAttempts(cid CardId) int
 }
@@ -22,10 +24,12 @@ func NewCardService(repo CardRepository) CardService {
 }
 
 func (cs *cardService) CreateCard(phrase string, translation string) error {
+	phrase = strings.TrimSpace(phrase)
 	if phrase == "" {
 		return fmt.Errorf("No phrase is provided")
 	}
 
+	translation = strings.TrimSpace(translation)
 	if translation == "" {
 		return fmt.Errorf("No translation is provided")
 	}
@@ -50,6 +54,36 @@ func (cs *cardService) RandomCard() (Card, error) {
 		return Card{}, err
 	}
 	return card, nil
+}
+
+func (cs *cardService) RandomCardGenerator() (<-chan Card, func()) {
+	cids, err := cs.repo.ListCardIds()
+	if err != nil {
+		return nil, func() {}
+	}
+
+	rand.Shuffle(len(cids), func(i, j int) {cids[i], cids[j] = cids[j], cids[i]})
+
+	g := make(chan Card)
+	done := make(chan struct{})
+
+	go func() {
+		defer close(g)
+		for _, cid := range cids {
+			card, err := cs.repo.CardById(cid)
+			if err != nil {
+				continue
+			}
+			select {
+			case g <- card:
+			case <-done:
+				fmt.Println("closing generator")
+				return
+			}
+		}
+	}()
+
+	return g, func() {close(done)}
 }
 
 func (cs *cardService) RecordRecallAttempt(cid CardId, success bool) error {
