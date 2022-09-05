@@ -62,7 +62,7 @@ func (cs *cardService) RandomCardGenerator() (<-chan Card, func()) {
 		return nil, func() {}
 	}
 
-	rand.Shuffle(len(cids), func(i, j int) {cids[i], cids[j] = cids[j], cids[i]})
+	rand.Shuffle(len(cids), func(i, j int) { cids[i], cids[j] = cids[j], cids[i] })
 
 	g := make(chan Card)
 	done := make(chan struct{})
@@ -83,7 +83,7 @@ func (cs *cardService) RandomCardGenerator() (<-chan Card, func()) {
 		}
 	}()
 
-	return g, func() {close(done)}
+	return g, func() { close(done) }
 }
 
 func (cs *cardService) RecordRecallAttempt(cid CardId, success bool) error {

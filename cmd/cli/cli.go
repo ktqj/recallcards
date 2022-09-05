@@ -39,8 +39,7 @@ func initFileRepository() cards.CardRepository {
 
 func main() {
 	sigChannel := make(chan os.Signal, 1)
-   	signal.Notify(sigChannel, os.Interrupt, syscall.SIGTERM)
-
+	signal.Notify(sigChannel, os.Interrupt, syscall.SIGTERM)
 
 	rand.Seed(int64(time.Now().Nanosecond()))
 	// rand.Seed(1)
@@ -50,15 +49,15 @@ func main() {
 
 	generator, done := cardService.RandomCardGenerator()
 
-   	go func() {
-   		select {
-   		case <- sigChannel:
-   			fmt.Println("\nsigterm received")
-   			done()
-   			time.Sleep(100*time.Microsecond)
-   			os.Exit(0)
-   		}
-   	}()
+	go func() {
+		select {
+		case <-sigChannel:
+			fmt.Println("\nsigterm received")
+			done()
+			time.Sleep(100 * time.Microsecond)
+			os.Exit(0)
+		}
+	}()
 
 	i := 1
 	for card := range generator {

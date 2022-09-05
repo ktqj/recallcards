@@ -59,8 +59,8 @@ func (c *controller) IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    err = t.Execute(w, &struct{}{})
-    if err != nil {
+	err = t.Execute(w, &struct{}{})
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
