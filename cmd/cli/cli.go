@@ -3,17 +3,17 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"os"
 	"os/signal"
 	"syscall"
-
-	// "runtime"
 	"time"
-
-	"os"
 
 	"example.com/recallcards/pkg/cards"
 	"example.com/recallcards/pkg/storage/file"
 	"github.com/rs/zerolog/log"
+
+	"net/http"
+	_ "net/http/pprof"
 )
 
 func readline(prompt string) (string, error) {
@@ -37,6 +37,13 @@ func initFileRepository() cards.CardRepository {
 }
 
 func main() {
+	go func() {
+		err := http.ListenAndServe("localhost:6060", nil)
+		if err != nil {
+			log.Fatal().Err(err).Msg("httpServer exited")
+		}
+	}()
+
 	sigChannel := make(chan os.Signal, 1)
 	signal.Notify(sigChannel, os.Interrupt, syscall.SIGTERM)
 
@@ -47,7 +54,7 @@ func main() {
 
 	go func() {
 		<-sigChannel
-		fmt.Println("\nsigterm received")
+		log.Debug().Msg("sigterm received")
 		done()
 		time.Sleep(100 * time.Microsecond)
 		os.Exit(0)
@@ -60,7 +67,7 @@ func main() {
 
 		_, err := readline(card.Translation)
 		if err != nil {
-			panic(err)
+			log.Fatal().Err(err).Msgf("Could not display card's translation")
 		}
 
 		fmt.Print(card.Phrase + "\n")
@@ -69,13 +76,13 @@ func main() {
 			if answer == "y" {
 				err := cardService.RecordRecallAttempt(card.ID, true)
 				if err != nil {
-					panic(err)
+					log.Fatal().Err(err).Msgf("Could not record a recall attempt")
 				}
 				break
 			} else if answer == "n" {
 				err := cardService.RecordRecallAttempt(card.ID, false)
 				if err != nil {
-					panic(err)
+					log.Fatal().Err(err).Msgf("Could not record a recall attempt")
 				}
 				break
 			}

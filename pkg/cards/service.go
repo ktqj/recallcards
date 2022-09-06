@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 func init() {
@@ -81,7 +83,7 @@ func (cs *cardService) RandomCardGenerator() (<-chan Card, func()) {
 			select {
 			case g <- card:
 			case <-done:
-				fmt.Println("closing generator")
+				log.Debug().Msg("Closing random card generator")
 				return
 			}
 		}

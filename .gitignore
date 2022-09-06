@@ -3,3 +3,6 @@
 .DS_Store
 .env
 .docker_env
+*.gif
+*.pdf
+/.vscode
