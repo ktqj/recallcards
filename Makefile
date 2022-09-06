@@ -4,6 +4,12 @@ export
 create-tmp:
 	mkdir -p ./tmp/file_storage
 
+clean:
+	go fmt ./...
+
+lint:
+	golangci-lint run -v
+
 ################
 
 compile-http:

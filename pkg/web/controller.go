@@ -20,9 +20,12 @@ type controller struct {
 }
 
 func (c *controller) CreateCardForm(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Malformed form data", http.StatusBadRequest)
+	}
 
-	err := c.srv.CreateCard(r.PostForm.Get("phrase"), r.PostForm.Get("translation"))
+	err = c.srv.CreateCard(r.PostForm.Get("phrase"), r.PostForm.Get("translation"))
 	if err != nil {
 		msg := fmt.Sprintf("Unable to create a card: %s", err)
 		http.Error(w, msg, http.StatusBadRequest)

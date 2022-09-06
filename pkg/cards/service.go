@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+func init() {
+	rand.Seed(int64(time.Now().Nanosecond()))
+}
+
 type CardService interface {
 	CreateCard(phrase string, translation string) error
 	RandomCard() (Card, error)
@@ -59,7 +63,7 @@ func (cs *cardService) RandomCard() (Card, error) {
 func (cs *cardService) RandomCardGenerator() (<-chan Card, func()) {
 	cids, err := cs.repo.ListCardIds()
 	if err != nil {
-		return nil, func() {}
+		return nil, nil
 	}
 
 	rand.Shuffle(len(cids), func(i, j int) { cids[i], cids[j] = cids[j], cids[i] })
