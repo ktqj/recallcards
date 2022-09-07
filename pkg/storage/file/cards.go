@@ -27,7 +27,7 @@ func (objects Cards) append(c cards.Card) Cards {
 }
 
 type cardStorage struct {
-	Cards   Cards   `json:"cards"`
+	Cards    Cards `json:"cards"`
 	filepath string
 }
 

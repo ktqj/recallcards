@@ -9,7 +9,11 @@ import (
 	"path"
 )
 
-func readJsonFile[S cardStorage|recallStorage](p string) (S, error) {
+type storage interface {
+	cardStorage | recallStorage
+}
+
+func readJsonFile[S storage](p string) (S, error) {
 	var data S
 
 	f, err := os.OpenFile(p, os.O_RDONLY|os.O_CREATE, 0755)
@@ -22,7 +26,7 @@ func readJsonFile[S cardStorage|recallStorage](p string) (S, error) {
 		return data, err
 	}
 	defer f.Close()
-	
+
 	err = json.NewDecoder(f).Decode(&data)
 
 	if err != nil && err != io.EOF {
@@ -31,7 +35,7 @@ func readJsonFile[S cardStorage|recallStorage](p string) (S, error) {
 	return data, nil
 }
 
-func writeJsonFile[S cardStorage|recallStorage](data S, path string) error {
+func writeJsonFile[S storage](data S, path string) error {
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
 		return err

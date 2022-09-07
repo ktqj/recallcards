@@ -1,8 +1,8 @@
 package file
 
 import (
-	"math/rand"
 	"example.com/recallcards/pkg/cards"
+	"math/rand"
 )
 
 type repository struct {
@@ -67,7 +67,7 @@ func NewRepository(dir string) (cards.Repository, error) {
 	}
 
 	rep := repository{
-		cardStorage:  cards,
+		cardStorage:   cards,
 		recallStorage: recalls,
 	}
 	return &rep, nil

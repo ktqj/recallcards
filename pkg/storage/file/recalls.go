@@ -11,7 +11,7 @@ func (objects Recalls) append(r cards.RecallAttempt) Recalls {
 }
 
 type recallStorage struct {
-	Recalls Recalls `json:"recalls"`
+	Recalls  Recalls `json:"recalls"`
 	filepath string
 }
 
