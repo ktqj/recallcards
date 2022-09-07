@@ -19,7 +19,7 @@ func (s recallStorage) persist() error {
 	return writeJsonFile(s, s.filepath)
 }
 
-func (s recallStorage) InsertRecallAttempt(r cards.RecallAttempt) error {
+func (s *recallStorage) InsertRecallAttempt(r cards.RecallAttempt) error {
 	s.Recalls = s.Recalls.append(r)
 	return s.persist()
 }

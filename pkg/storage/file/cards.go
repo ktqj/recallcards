@@ -35,7 +35,7 @@ func (s cardStorage) persist() error {
 	return writeJsonFile(s, s.filepath)
 }
 
-func (s cardStorage) InsertCard(c cards.Card) error {
+func (s *cardStorage) InsertCard(c cards.Card) error {
 	_, err := s.findCardByPhrase(c.Phrase)
 	if err == nil {
 		return fmt.Errorf("Card with a phrase \"%s\" already exists", c.Phrase)
