@@ -3,31 +3,13 @@ package file
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 
 	"example.com/recallcards/pkg/cards"
 )
 
-type Cards []cards.Card
-
-func (objects Cards) getNextID() cards.CardId {
-	maxID := cards.CardId(0)
-	for i := 0; i < len(objects); i++ {
-		id := objects[i].ID
-		if id > maxID {
-			maxID = id
-		}
-	}
-	maxID++
-	return maxID
-}
-
-func (objects Cards) append(c cards.Card) Cards {
-	c.ID = objects.getNextID()
-	return append(objects, c)
-}
-
 type cardStorage struct {
-	Cards    Cards `json:"cards"`
+	Cards    []cards.Card `json:"cards"`
 	filepath string
 }
 
@@ -40,8 +22,22 @@ func (s *cardStorage) InsertCard(c cards.Card) error {
 	if err == nil {
 		return fmt.Errorf("Card with a phrase \"%s\" already exists", c.Phrase)
 	}
-	s.Cards = s.Cards.append(c)
+
+	c.ID = s.getNextID()
+	s.Cards = append(s.Cards, c)
 	return s.persist()
+}
+
+func (s cardStorage) getNextID() cards.CardId {
+	maxID := cards.CardId(0)
+	for i := 0; i < len(s.Cards); i++ {
+		id := s.Cards[i].ID
+		if id > maxID {
+			maxID = id
+		}
+	}
+	maxID++
+	return maxID
 }
 
 func (s cardStorage) findCardByPhrase(phrase string) (cards.Card, error) {
@@ -68,4 +64,47 @@ func (s cardStorage) ListCardIds() ([]cards.CardId, error) {
 		res[i] = s.Cards[i].ID
 	}
 	return res, nil
+}
+
+func (s cardStorage) ListUsedBuckets() ([]cards.BucketId, error) {
+	buckets := make(map[cards.BucketId]struct{})
+	for i := 0; i < len(s.Cards); i++ {
+		buckets[s.Cards[i].Bucket] = struct{}{}
+	}
+
+	res := make([]cards.BucketId, len(buckets))
+	i := 0
+	for b := range buckets {
+		res[i] = b
+		i++
+	}
+	return res, nil
+}
+
+func (s cardStorage) RandomCardByBucket(b cards.BucketId) (cards.Card, error) {
+	count := s.countByBucket(b)
+	picked := rand.Intn(count)
+
+	j := 0
+	for i := 0; i < len(s.Cards); i++ {
+		if s.Cards[i].Bucket != b {
+			continue
+		}
+		if j != picked {
+			j++
+			continue
+		}
+		return s.Cards[i], nil
+	}
+	return cards.Card{}, nil
+}
+
+func (s cardStorage) countByBucket(b cards.BucketId) int {
+	count := 0
+	for i := 0; i < len(s.Cards); i++ {
+		if s.Cards[i].Bucket == b {
+			count++
+		}
+	}
+	return count
 }

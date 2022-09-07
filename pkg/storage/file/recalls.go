@@ -4,14 +4,8 @@ import (
 	"example.com/recallcards/pkg/cards"
 )
 
-type Recalls []cards.RecallAttempt
-
-func (objects Recalls) append(r cards.RecallAttempt) Recalls {
-	return append(objects, r)
-}
-
 type recallStorage struct {
-	Recalls  Recalls `json:"recalls"`
+	Recalls  []cards.RecallAttempt `json:"recalls"`
 	filepath string
 }
 
@@ -20,7 +14,7 @@ func (s recallStorage) persist() error {
 }
 
 func (s *recallStorage) InsertRecallAttempt(r cards.RecallAttempt) error {
-	s.Recalls = s.Recalls.append(r)
+	s.Recalls = append(s.Recalls, r)
 	return s.persist()
 }
 
