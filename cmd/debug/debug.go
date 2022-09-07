@@ -11,13 +11,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func initFileRepository() cards.CardRepository {
-	memFilePath := os.Getenv("MEM_STORAGE_JSON_FILE_PATH")
-	if memFilePath == "" {
-		log.Fatal().Msgf("No file path provided under MEM_STORAGE_JSON_FILE_PATH var")
+func initFileRepository() cards.Repository {
+	dir := os.Getenv("JSON_STORAGE_DIR")
+	if dir == "" {
+		log.Fatal().Msgf("No file path provided under JSON_STORAGE_DIR var")
 	}
 
-	rep, err := file.NewRepository(memFilePath)
+	rep, err := file.NewRepository(dir)
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Could not initialize repository")
 	}

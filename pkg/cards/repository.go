@@ -1,6 +1,6 @@
 package cards
 
-type CardRepository interface {
+type Repository interface {
 	InsertCard(c Card) error
 	InsertRecallAttempt(r RecallAttempt) error
 	CardById(cid CardId) (Card, error)

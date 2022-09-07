@@ -3,7 +3,6 @@ package cards
 import (
 	"math"
 	"time"
-	// _ "golang.org/x/tools/cmd/stringer"
 )
 
 type BucketId uint8
@@ -16,6 +15,7 @@ const (
 	DoneBucket    BucketId = math.MaxUint8
 )
 
+// https://github.com/golang/go/issues/25922#issuecomment-1065971260
 //go:generate go run golang.org/x/tools/cmd/stringer -type=BucketId
 
 type RecallAttempt struct {

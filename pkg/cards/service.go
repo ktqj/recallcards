@@ -22,10 +22,10 @@ type CardService interface {
 }
 
 type cardService struct {
-	repo CardRepository
+	repo Repository
 }
 
-func NewCardService(repo CardRepository) CardService {
+func NewCardService(repo Repository) CardService {
 	return &cardService{repo: repo}
 }
 

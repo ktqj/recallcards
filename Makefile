@@ -13,6 +13,7 @@ lint:
 ################
 
 compile-http:
+	go generate ./...
 	go build -o ./bin/recallcards_web ./cmd/http/main.go
 
 web: create-tmp compile-http
@@ -21,6 +22,7 @@ web: create-tmp compile-http
 ################
 
 compile-cli:
+	go generate ./...
 	go build -o ./bin/recallcards_cli ./cmd/cli/cli.go
 
 cli: create-tmp compile-cli
@@ -29,6 +31,7 @@ cli: create-tmp compile-cli
 #################
 
 compile-debug:
+	go generate ./...
 	go build -o ./bin/recallcards_debug ./cmd/debug/debug.go
 
 debug: create-tmp compile-debug
