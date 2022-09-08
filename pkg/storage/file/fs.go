@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path"
+
 	"example.com/recallcards/pkg/cards"
 )
 
@@ -48,4 +49,8 @@ func writeJsonFile[S coll](data S, path string) error {
 		return err
 	}
 	return nil
+}
+
+func persistCollection[C coll](objects C, filepath string) error {
+	return writeJsonFile(objects, filepath)
 }

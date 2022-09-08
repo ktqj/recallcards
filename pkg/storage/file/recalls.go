@@ -5,23 +5,19 @@ import (
 )
 
 type recallStorage struct {
-	Recalls  cards.Recalls `json:"recalls"`
+	cache cards.Recalls `filename:"recalls.json"`
 	filepath string
 }
 
-func (s recallStorage) persist() error {
-	return writeJsonFile(s.Recalls, s.filepath)
-}
-
 func (s *recallStorage) InsertRecallAttempt(r cards.RecallAttempt) error {
-	s.Recalls = append(s.Recalls, r)
-	return s.persist()
+	s.cache = append(s.cache, r)
+	return persistCollection(s.cache, s.filepath)
 }
 
 func (s recallStorage) CountRecallAttempts(cid cards.CardId) int {
 	count := 0
-	for i := 0; i < len(s.Recalls); i++ {
-		r := s.Recalls[i]
+	for i := 0; i < len(s.cache); i++ {
+		r := s.cache[i]
 		if r.CardId == cid && r.Success {
 			count++
 		}
