@@ -5,12 +5,12 @@ import (
 )
 
 type recallStorage struct {
-	Recalls  []cards.RecallAttempt `json:"recalls"`
+	Recalls  cards.Recalls `json:"recalls"`
 	filepath string
 }
 
 func (s recallStorage) persist() error {
-	return writeJsonFile(s, s.filepath)
+	return writeJsonFile(s.Recalls, s.filepath)
 }
 
 func (s *recallStorage) InsertRecallAttempt(r cards.RecallAttempt) error {

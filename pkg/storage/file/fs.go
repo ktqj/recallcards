@@ -7,13 +7,14 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"example.com/recallcards/pkg/cards"
 )
 
-type storage interface {
-	cardStorage | recallStorage
+type coll interface {
+	cards.Cards | cards.Recalls
 }
 
-func readJsonFile[S storage](p string) (S, error) {
+func readJsonFile[S coll](p string) (S, error) {
 	var data S
 
 	f, err := os.OpenFile(p, os.O_RDONLY|os.O_CREATE, 0755)
@@ -35,7 +36,7 @@ func readJsonFile[S storage](p string) (S, error) {
 	return data, nil
 }
 
-func writeJsonFile[S storage](data S, path string) error {
+func writeJsonFile[S coll](data S, path string) error {
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
 		return err

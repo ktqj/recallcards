@@ -23,6 +23,7 @@ type RecallAttempt struct {
 	Success    bool
 	CardId     CardId
 }
+type Recalls []RecallAttempt
 
 type CardId int
 type Card struct {
@@ -32,3 +33,4 @@ type Card struct {
 	Bucket      BucketId
 	CreatedAt   time.Time
 }
+type Cards []Card

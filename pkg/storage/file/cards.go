@@ -9,12 +9,12 @@ import (
 )
 
 type cardStorage struct {
-	Cards    []cards.Card `json:"cards"`
+	Cards    cards.Cards `json:"cards"`
 	filepath string
 }
 
 func (s cardStorage) persist() error {
-	return writeJsonFile(s, s.filepath)
+	return writeJsonFile(s.Cards, s.filepath)
 }
 
 func (s *cardStorage) InsertCard(c cards.Card) error {

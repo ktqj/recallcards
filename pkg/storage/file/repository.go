@@ -10,21 +10,27 @@ type repository struct {
 }
 
 func NewRepository(dir string) (cards.Repository, error) {
-	cards, err := readJsonFile[cardStorage](dir + "cards.json")
-	cards.filepath = dir + "cards.json"
+	cardsFilePath := dir + "cards.json"
+	cardsList, err := readJsonFile[cards.Cards](cardsFilePath)
 	if err != nil {
 		return nil, err
 	}
 
-	recalls, err := readJsonFile[recallStorage](dir + "recalls.json")
-	recalls.filepath = dir + "recalls.json"
+	recallsFilePath := dir + "recalls.json"
+	recallsList, err := readJsonFile[cards.Recalls](recallsFilePath)
 	if err != nil {
 		return nil, err
 	}
 
 	rep := repository{
-		cardStorage:   cards,
-		recallStorage: recalls,
+		cardStorage:   cardStorage{
+			Cards: cardsList,
+			filepath: cardsFilePath,
+		},
+		recallStorage: recallStorage{
+			Recalls: recallsList,
+			filepath: recallsFilePath,
+		},
 	}
 	return &rep, nil
 }

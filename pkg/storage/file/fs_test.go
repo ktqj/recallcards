@@ -19,13 +19,13 @@ func Test_fileReader(t *testing.T) {
 	path := tmpFile.Name()
 	defer os.Remove(path)
 
-	fileReader := readJsonFile[cardStorage]
+	fileReader := readJsonFile[cards.Cards]
 	d, err := fileReader(path)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	emptryStorage := cardStorage{Cards: make([]cards.Card, 0)}
+	emptryStorage := make(cards.Cards, 0)
 	if reflect.DeepEqual(d, emptryStorage) {
 		t.Fatalf("Expected %v, got %v", emptryStorage, d)
 	}
@@ -46,7 +46,7 @@ func Test_fileReader(t *testing.T) {
 	}
 
 	// Test reading a mapped card
-	content := []byte(`{"cards":[{"ID":1,"Phrase":"wąs","Translation":"усы","Bucket":0,"Created_at":"2022-09-02T15:35:54.316447+02:00"}]}`)
+	content := []byte(`[{"ID":1,"Phrase":"wąs","Translation":"усы","Bucket":0,"Created_at":"2022-09-02T15:35:54.316447+02:00"}]`)
 	_, err = tmpFile.WriteAt(content, 0)
 	if err != nil {
 		t.Fatal(err)
@@ -57,7 +57,7 @@ func Test_fileReader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(d.Cards) != 1 {
+	if len(d) != 1 {
 		t.Fatalf("Expected map with 1 elem, got %v", d)
 	}
 
