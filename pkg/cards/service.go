@@ -18,7 +18,7 @@ type CardService interface {
 	RandomCard() (Card, error)
 	RandomCardGenerator() (<-chan Card, func())
 	RecordRecallAttempt(cid CardId, result bool) error
-	CountRecallAttempts(cid CardId) int
+	CountRecallAttempts(cid CardId) RecallSummary
 }
 
 type cardService struct {
@@ -106,6 +106,6 @@ func (cs *cardService) RecordRecallAttempt(cid CardId, success bool) error {
 	return nil
 }
 
-func (cs *cardService) CountRecallAttempts(cid CardId) int {
+func (cs *cardService) CountRecallAttempts(cid CardId) RecallSummary {
 	return cs.repo.CountRecallAttempts(cid)
 }

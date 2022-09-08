@@ -7,5 +7,5 @@ type Repository interface {
 	ListCardIds() ([]CardId, error)
 	ListUsedBuckets() ([]BucketId, error)
 	RandomCardByBucket(b BucketId) (Card, error)
-	CountRecallAttempts(cid CardId) int
+	CountRecallAttempts(cid CardId) RecallSummary
 }

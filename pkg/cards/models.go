@@ -25,6 +25,11 @@ type RecallAttempt struct {
 }
 type Recalls []RecallAttempt
 
+type RecallSummary struct {
+	Ok   int
+	Fail int
+}
+
 type CardId int
 type Card struct {
 	ID          CardId

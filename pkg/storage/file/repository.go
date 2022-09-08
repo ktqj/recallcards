@@ -13,7 +13,7 @@ type repository struct {
 }
 
 func filenameFromStorage[C cardStorage | recallStorage]() string {
-	f, ok := reflect.TypeOf((*C)(nil)).Elem().FieldByName("cache")
+	f, ok := reflect.TypeOf((*C)(nil)).Elem().FieldByName("objects")
 	if !ok {
 		panic("Unable to get filename from storage type definition")
 	}
@@ -35,11 +35,11 @@ func NewRepository(dir string) (cards.Repository, error) {
 
 	rep := repository{
 		cardStorage: cardStorage{
-			cache:    cardsList,
+			objects:  cardsList,
 			filepath: cardsFilePath,
 		},
 		recallStorage: recallStorage{
-			cache:    recallsList,
+			objects:  recallsList,
 			filepath: recallsFilePath,
 		},
 		dir: dir,

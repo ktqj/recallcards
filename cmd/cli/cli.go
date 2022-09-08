@@ -63,8 +63,8 @@ func main() {
 	i := 1
 	for card := range generator {
 
-		recallsCount := cardService.CountRecallAttempts(card.ID)
-		fmt.Fprintf(os.Stdout, "Recall #%d, card [#%d|%s|recalled %d times]\n", i, card.ID, card.Bucket, recallsCount)
+		recalls := cardService.CountRecallAttempts(card.ID)
+		fmt.Fprintf(os.Stdout, "Recall #%d, card [#%d|%s|recalls %+v]\n", i, card.ID, card.Bucket, recalls)
 
 		_, err := readline(card.Translation)
 		if err != nil {
