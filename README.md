@@ -1,4 +1,5 @@
-Application for card memorization.
+A toy app for card memorization.
+
 
 Run web version:
 - make web
