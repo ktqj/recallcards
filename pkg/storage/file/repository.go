@@ -39,7 +39,7 @@ func NewRepository(dir string) (cards.Repository, error) {
 			filepath: cardsFilePath,
 		},
 		recallStorage: recallStorage{
-			cache:  recallsList,
+			cache:    recallsList,
 			filepath: recallsFilePath,
 		},
 		dir: dir,

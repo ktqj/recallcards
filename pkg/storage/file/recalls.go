@@ -5,7 +5,7 @@ import (
 )
 
 type recallStorage struct {
-	cache cards.Recalls `filename:"recalls.json"`
+	cache    cards.Recalls `filename:"recalls.json"`
 	filepath string
 }
 

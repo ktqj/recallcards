@@ -9,7 +9,7 @@ import (
 )
 
 type cardStorage struct {
-	cache cards.Cards `filename:"cards.json"`
+	cache    cards.Cards `filename:"cards.json"`
 	filepath string
 }
 
