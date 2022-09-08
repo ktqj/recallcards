@@ -46,7 +46,7 @@ func Test_fileReader(t *testing.T) {
 	}
 
 	// Test reading a mapped card
-	content := []byte(`{"cards":[{"ID":1,"Phrase":"wąs","Translation":"усы","Bucket":0,"Created_at":"2022-08-02T15:35:54.316447+02:00"}]}`)
+	content := []byte(`{"cards":[{"ID":1,"Phrase":"wąs","Translation":"усы","Bucket":0,"Created_at":"2022-09-02T15:35:54.316447+02:00"}]}`)
 	_, err = tmpFile.WriteAt(content, 0)
 	if err != nil {
 		t.Fatal(err)
