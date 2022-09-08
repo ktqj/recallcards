@@ -17,11 +17,11 @@ func (s *recallStorage) InsertRecallAttempt(r cards.RecallAttempt) error {
 
 func (s recallStorage) CountRecallAttempts(cid cards.CardId) cards.RecallSummary {
 	var res cards.RecallSummary
-	for i := 0; i < len(s.objects); i++ {
-		r := s.objects[i]
+	for _, r := range s.objects {
 		if r.CardId != cid {
 			continue
 		}
+
 		if r.Success {
 			res.Ok++
 		} else {
