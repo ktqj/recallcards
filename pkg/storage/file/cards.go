@@ -28,10 +28,9 @@ func (s *cardStorage) InsertCard(c cards.Card) error {
 func (s cardStorage) getNextID() cards.CardId {
 	// not thread-safe
 	maxID := cards.CardId(0)
-	for i := 0; i < len(s.objects); i++ {
-		id := s.objects[i].ID
-		if id > maxID {
-			maxID = id
+	for _, c := range s.objects {
+		if c.ID > maxID {
+			maxID = c.ID
 		}
 	}
 	maxID++
@@ -39,18 +38,18 @@ func (s cardStorage) getNextID() cards.CardId {
 }
 
 func (s cardStorage) findCardByPhrase(phrase string) (cards.Card, error) {
-	for i := range s.objects {
-		if s.objects[i].Phrase == phrase {
-			return s.objects[i], nil
+	for _, c := range s.objects {
+		if c.Phrase == phrase {
+			return c, nil
 		}
 	}
 	return cards.Card{}, errors.New("Not found")
 }
 
 func (s cardStorage) CardById(cid cards.CardId) (cards.Card, error) {
-	for i := range s.objects {
-		if s.objects[i].ID == cid {
-			return s.objects[i], nil
+	for _, c := range s.objects {
+		if c.ID == cid {
+			return c, nil
 		}
 	}
 	return cards.Card{}, errors.New("Not found")
@@ -58,16 +57,16 @@ func (s cardStorage) CardById(cid cards.CardId) (cards.Card, error) {
 
 func (s cardStorage) ListCardIds() ([]cards.CardId, error) {
 	res := make([]cards.CardId, len(s.objects))
-	for i := range s.objects {
-		res[i] = s.objects[i].ID
+	for i, c := range s.objects {
+		res[i] = c.ID
 	}
 	return res, nil
 }
 
 func (s cardStorage) ListUsedBuckets() ([]cards.BucketId, error) {
 	buckets := make(map[cards.BucketId]struct{})
-	for i := 0; i < len(s.objects); i++ {
-		buckets[s.objects[i].Bucket] = struct{}{}
+	for _, c := range s.objects {
+		buckets[c.Bucket] = struct{}{}
 	}
 
 	res := make([]cards.BucketId, len(buckets))
@@ -84,23 +83,23 @@ func (s cardStorage) RandomCardByBucket(b cards.BucketId) (cards.Card, error) {
 	picked := rand.Intn(count)
 
 	j := 0
-	for i := 0; i < len(s.objects); i++ {
-		if s.objects[i].Bucket != b {
+	for _, c := range s.objects {
+		if c.Bucket != b {
 			continue
 		}
 		if j != picked {
 			j++
 			continue
 		}
-		return s.objects[i], nil
+		return c, nil
 	}
 	return cards.Card{}, nil
 }
 
 func (s cardStorage) countByBucket(b cards.BucketId) int {
 	count := 0
-	for i := 0; i < len(s.objects); i++ {
-		if s.objects[i].Bucket == b {
+	for _, c := range s.objects {
+		if c.Bucket == b {
 			count++
 		}
 	}

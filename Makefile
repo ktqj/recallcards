@@ -41,6 +41,9 @@ debug: create-tmp compile-debug
 test:
 	go test -v -count=1  ./...
 
+bench:
+	go test -v -bench=. -benchmem ./...
+
 ################
 
 build-image:
