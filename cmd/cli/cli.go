@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -16,11 +17,14 @@ import (
 	_ "net/http/pprof"
 )
 
-func readline(prompt string) (string, error) {
+func readlineAfter(prompt string) (string, error) {
 	fmt.Fprint(os.Stdout, prompt)
-	r := bufio.NewReader(os.Stdout)
-	input, err := r.ReadString('\n')
-	return input[:len(input)-1], err
+
+	line, err := bufio.NewReader(os.Stdout).ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(line), nil
 }
 
 func initFileRepository() cards.Repository {
@@ -66,14 +70,14 @@ func main() {
 		recalls := cardService.CountRecallAttempts(card.ID)
 		fmt.Fprintf(os.Stdout, "Recall #%d, card [#%d|%s|recalls %+v]\n", i, card.ID, card.Bucket, recalls)
 
-		_, err := readline(card.Translation)
+		_, err := readlineAfter(card.Translation)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Could not display card's translation")
 		}
 
 		fmt.Print(card.Phrase + "\n")
 		for {
-			answer, _ := readline("Got it right? [y/n]\n")
+			answer, _ := readlineAfter("Got it right? [y/n]\n")
 			if answer == "y" {
 				err := cardService.RecordRecallAttempt(card.ID, true)
 				if err != nil {

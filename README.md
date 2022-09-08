@@ -8,4 +8,4 @@ Run cli version:
 
 
 Optional requirements:
-- golingci-lint for "make lint"
+- golingci-lint [make lint]
