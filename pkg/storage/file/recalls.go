@@ -10,6 +10,7 @@ type recallStorage struct {
 }
 
 func (s *recallStorage) InsertRecallAttempt(r cards.RecallAttempt) error {
+	// this section is not thread-safe
 	s.cache = append(s.cache, r)
 	return persistCollection(s.cache, s.filepath)
 }

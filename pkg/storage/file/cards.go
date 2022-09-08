@@ -19,12 +19,14 @@ func (s *cardStorage) InsertCard(c cards.Card) error {
 		return fmt.Errorf("Card with a phrase \"%s\" already exists", c.Phrase)
 	}
 
+	// this section is not thread-safe
 	c.ID = s.getNextID()
 	s.cache = append(s.cache, c)
 	return persistCollection(s.cache, s.filepath)
 }
 
 func (s cardStorage) getNextID() cards.CardId {
+	// not thread-safe
 	maxID := cards.CardId(0)
 	for i := 0; i < len(s.cache); i++ {
 		id := s.cache[i].ID
