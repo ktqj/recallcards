@@ -9,7 +9,6 @@ import (
 var objectsGlobal, _ = readJsonFile[cards.Cards]("./testdata/cards.json")
 
 func BenchmarkCardsLoopingRangeIndexOnlyGlobal(b *testing.B) {
-	// BenchmarkCardsLoopingRangeIndexOnly
 	// BenchmarkCardsLoopingRangeIndexOnly-12    	1000000000	         0.5007 ns/op	       0 B/op	       0 allocs/op
 	for i := 0; i < b.N; i++ {
 		count := 0
@@ -22,7 +21,6 @@ func BenchmarkCardsLoopingRangeIndexOnlyGlobal(b *testing.B) {
 }
 
 func BenchmarkCardsLoopingForIndexGlobal(b *testing.B) {
-	// BenchmarkCardsLoopingForIndex
 	// BenchmarkCardsLoopingForIndex-12          	1000000000	         0.5083 ns/op	       0 B/op	       0 allocs/op
 	for i := 0; i < b.N; i++ {
 		count := 0
@@ -35,7 +33,6 @@ func BenchmarkCardsLoopingForIndexGlobal(b *testing.B) {
 }
 
 func BenchmarkCardsLoopingFullRangeGlobal(b *testing.B) {
-	// BenchmarkCardsLoopingFullRange
 	// BenchmarkCardsLoopingFullRange-12         	1000000000	         0.2462 ns/op	       0 B/op	       0 allocs/op
 	for i := 0; i < b.N; i++ {
 		count := 0
@@ -48,7 +45,6 @@ func BenchmarkCardsLoopingFullRangeGlobal(b *testing.B) {
 }
 
 func BenchmarkCardsLoopingRangeIndexOnly(b *testing.B) {
-	// BenchmarkCardsLoopingRangeIndexOnly
 	// BenchmarkCardsLoopingRangeIndexOnly-12    	1000000000	         0.7389 ns/op	       0 B/op	       0 allocs/op
 	var objects, _ = readJsonFile[cards.Cards]("./testdata/cards.json")
 	for i := 0; i < b.N; i++ {
@@ -62,7 +58,6 @@ func BenchmarkCardsLoopingRangeIndexOnly(b *testing.B) {
 }
 
 func BenchmarkCardsLoopingForIndex(b *testing.B) {
-	// BenchmarkCardsLoopingForIndex
 	// BenchmarkCardsLoopingForIndex-12          	1000000000	         0.7361 ns/op	       0 B/op	       0 allocs/op
 	var objects, _ = readJsonFile[cards.Cards]("./testdata/cards.json")
 	for i := 0; i < b.N; i++ {
@@ -76,7 +71,6 @@ func BenchmarkCardsLoopingForIndex(b *testing.B) {
 }
 
 func BenchmarkCardsLoopingFullRange(b *testing.B) {
-	// BenchmarkCardsLoopingFullRange
 	// BenchmarkCardsLoopingFullRange-12         	1000000000	         0.2436 ns/op	       0 B/op	       0 allocs/op
 	var objects, _ = readJsonFile[cards.Cards]("./testdata/cards.json")
 	for i := 0; i < b.N; i++ {
