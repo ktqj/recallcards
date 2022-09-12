@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-
-	"math/rand"
 	"os"
 
 	"example.com/recallcards/pkg/cards"
 	"example.com/recallcards/pkg/storage/file"
 	"github.com/rs/zerolog/log"
+
+	"net/http"
+	_ "net/http/pprof"
 )
 
 func initFileRepository() cards.Repository {
@@ -25,14 +26,28 @@ func initFileRepository() cards.Repository {
 }
 
 func main() {
-	rep := initFileRepository()
-	buckets, _ := rep.ListUsedBuckets()
-	fmt.Printf("%v\n", buckets)
+	go func() {
+		err := http.ListenAndServe("localhost:6060", nil)
+		if err != nil {
+			log.Fatal().Err(err).Msg("httpServer exited")
+		}
+	}()
 
-	card, _ := rep.RandomCardByBucket(buckets[0])
-	if rand.Intn(2) == 0 {
-		fmt.Printf("%v\n", card.Phrase)
-	} else {
-		fmt.Printf("%v\n", card.Translation)
+	repository := initFileRepository()
+	cardService := cards.NewCardService(repository)
+
+	generator, _ := cardService.RandomCardGenerator()
+
+	i := 0
+	limit := 65
+	for card := range generator {
+
+		recalls := cardService.CountRecallAttempts(card.ID)
+		confidence := cardService.EstimateCardConfidence(card.ID, recalls)
+		if confidence >= limit {
+			i++
+		}
 	}
+	ids, _ := repository.ListCardIds()
+	fmt.Printf("%d/%d cards are over %d%% of confidence", i, len(ids), limit)
 }

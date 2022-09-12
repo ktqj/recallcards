@@ -19,6 +19,7 @@ type CardService interface {
 	RandomCardGenerator() (<-chan Card, func())
 	RecordRecallAttempt(cid CardId, result bool) error
 	CountRecallAttempts(cid CardId) RecallSummary
+	EstimateCardConfidence(cid CardId, recalls RecallSummary) int
 }
 
 type cardService struct {
@@ -27,6 +28,39 @@ type cardService struct {
 
 func NewCardService(repo Repository) CardService {
 	return &cardService{repo: repo}
+}
+
+// EstimateCardConfidence estimates confidence in knowing card's information
+// based on its recalls history. Returns a percentage value, between 0 and 100.
+func (cs *cardService) EstimateCardConfidence(cid CardId, recalls RecallSummary) int {
+	// card was never recalled correctly yet
+	if recalls.Ok == 0 {
+		return 0
+	}
+
+	// weighted difference between correct and failed recalls
+	failWeight := 2
+	diff := recalls.Ok - failWeight * recalls.Fail
+
+	confidentDifference := 10
+	if diff >= confidentDifference {
+		return 100
+	}
+
+	inconfidentDifference := -10
+	if diff <= inconfidentDifference {
+		return 0
+	}
+
+	// inconfidentDifference < diff < confidentDifference
+	base := 50.0
+	if diff >= 0 {
+		progress := (100.0 - base) / float64(confidentDifference) * float64(diff)
+		return int(base + progress)
+	}
+
+	regress := base / float64(inconfidentDifference) * float64(diff)
+	return int(base - regress)
 }
 
 func (cs *cardService) CreateCard(phrase string, translation string) error {
