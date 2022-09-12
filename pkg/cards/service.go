@@ -42,6 +42,11 @@ func (cs *cardService) EstimateCardConfidence(recalls RecallSummary) int {
 	failWeight := 2
 	diff := recalls.Ok - failWeight*recalls.Fail
 
+	flawlessConfidentDifference := 5
+	if diff >= flawlessConfidentDifference {
+		return 100
+	}
+
 	confidentDifference := 10
 	if diff >= confidentDifference {
 		return 100
