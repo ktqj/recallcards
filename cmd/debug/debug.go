@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 
 	"example.com/recallcards/pkg/cards"
@@ -25,6 +26,17 @@ func initFileRepository() cards.Repository {
 	return rep
 }
 
+func shouldCardBeDisplayed(confidence int) bool {
+	if confidence <= 50 {
+		return true
+	}
+
+	w := (100 - confidence) / 5
+	bias := 2
+	n := rand.Intn(w + bias)
+	return n < w
+}
+
 func main() {
 	go func() {
 		err := http.ListenAndServe("localhost:6060", nil)
@@ -39,15 +51,21 @@ func main() {
 	generator, _ := cardService.RandomCardGenerator()
 
 	i := 0
+	j := 0
 	limit := 65
 	for card := range generator {
 
 		recalls := cardService.CountRecallAttempts(card.ID)
-		confidence := cardService.EstimateCardConfidence(card.ID, recalls)
+		confidence := cardService.EstimateCardConfidence(recalls)
 		if confidence >= limit {
 			i++
 		}
+
+		if shouldCardBeDisplayed(confidence) {
+			j++
+		}
 	}
 	ids, _ := repository.ListCardIds()
-	fmt.Printf("%d/%d cards are over %d%% of confidence", i, len(ids), limit)
+	fmt.Printf("%d/%d cards are over %d%% of confidence\n", i, len(ids), limit)
+	fmt.Printf("%d/%d cards would be shown\n", j, len(ids))
 }

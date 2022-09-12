@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
 	"strings"
@@ -40,6 +41,16 @@ func initFileRepository() cards.Repository {
 	return rep
 }
 
+func shouldBeShown(confidence int) bool {
+	if confidence <= 50 {
+		return true
+	}
+
+	w := (100 - confidence) / 5
+	bias := 2
+	return rand.Intn(w+bias) < w
+}
+
 func main() {
 	go func() {
 		err := http.ListenAndServe("localhost:6060", nil)
@@ -68,7 +79,12 @@ func main() {
 	for card := range generator {
 
 		recalls := cardService.CountRecallAttempts(card.ID)
-		confidence := cardService.EstimateCardConfidence(card.ID, recalls)
+		confidence := cardService.EstimateCardConfidence(recalls)
+		if !shouldBeShown(confidence) {
+			fmt.Printf("Skipping \"%s\"\n", card.Phrase)
+			continue
+		}
+
 		fmt.Fprintf(os.Stdout, "Recall #%d, card [#%d|%d%%|%+v]\n", i, card.ID, confidence, recalls)
 
 		_, err := readlineAfter(card.Translation)
