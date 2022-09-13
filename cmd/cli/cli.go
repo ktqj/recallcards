@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
-	"math/rand"
 	"os"
 	"os/signal"
 	"strings"
@@ -41,17 +41,10 @@ func initFileRepository() cards.Repository {
 	return rep
 }
 
-func shouldBeShown(confidence int) bool {
-	if confidence <= 50 {
-		return true
-	}
-
-	w := (100 - confidence) / 5
-	bias := 2
-	return rand.Intn(w+bias) < w
-}
-
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	go func() {
 		err := http.ListenAndServe("localhost:6060", nil)
 		if err != nil {
@@ -65,12 +58,16 @@ func main() {
 	repository := initFileRepository()
 	cardService := cards.NewCardService(repository)
 
-	generator, done := cardService.RandomCardGenerator()
+	generator, err := cardService.FilteredRandomCardGenerator(ctx)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize cards stream")
+		return
+	}
 
 	go func() {
 		<-sigChannel
 		log.Debug().Msg("sigterm received")
-		done()
+		cancel()
 		time.Sleep(100 * time.Microsecond)
 		os.Exit(0)
 	}()
@@ -80,10 +77,6 @@ func main() {
 
 		recalls := cardService.CountRecallAttempts(card.ID)
 		confidence := cardService.EstimateCardConfidence(recalls)
-		if !shouldBeShown(confidence) {
-			fmt.Printf("Skipping \"%s\"\n", card.Phrase)
-			continue
-		}
 
 		fmt.Fprintf(os.Stdout, "Recall #%d, card [#%d|%d%%|%+v]\n", i, card.ID, confidence, recalls)
 

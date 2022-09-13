@@ -1,8 +1,13 @@
 package cards
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
+	"runtime"
+	"sync"
+
+	// "runtime"
 	"strings"
 	"time"
 
@@ -16,7 +21,8 @@ func init() {
 type CardService interface {
 	CreateCard(phrase string, translation string) error
 	RandomCard() (Card, error)
-	RandomCardGenerator() (<-chan Card, func())
+	RandomCardGenerator(ctx context.Context) (<-chan Card, error)
+	FilteredRandomCardGenerator(ctx context.Context) (<-chan Card, error)
 	RecordRecallAttempt(cid CardId, result bool) error
 	CountRecallAttempts(cid CardId) RecallSummary
 	EstimateCardConfidence(recalls RecallSummary) int
@@ -44,7 +50,7 @@ func (cs *cardService) EstimateCardConfidence(recalls RecallSummary) int {
 
 	flawlessConfidentDifference := 5
 	if diff >= flawlessConfidentDifference {
-		return 100
+		return 95
 	}
 
 	confidentDifference := 10
@@ -89,46 +95,120 @@ func (cs *cardService) CreateCard(phrase string, translation string) error {
 }
 
 func (cs *cardService) RandomCard() (Card, error) {
+	var card Card
+
 	buckets, err := cs.repo.ListUsedBuckets()
 	if err != nil {
-		return Card{}, err
+		return card, err
 	}
+
 	randomBucket := buckets[rand.Intn(len(buckets))]
-	card, err := cs.repo.RandomCardByBucket(randomBucket)
+	card, err = cs.repo.RandomCardByBucket(randomBucket)
 	if err != nil {
-		return Card{}, err
+		return card, err
 	}
+
 	return card, nil
 }
 
-func (cs *cardService) RandomCardGenerator() (<-chan Card, func()) {
+func (cs *cardService) RandomCardGenerator(ctx context.Context) (<-chan Card, error) {
 	cids, err := cs.repo.ListCardIds()
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	rand.Shuffle(len(cids), func(i, j int) { cids[i], cids[j] = cids[j], cids[i] })
 
-	g := make(chan Card)
-	done := make(chan struct{})
-
+	gen := make(chan Card)
 	go func() {
-		defer close(g)
+		defer close(gen)
 		for _, cid := range cids {
 			card, err := cs.repo.CardById(cid)
 			if err != nil {
 				continue
 			}
 			select {
-			case g <- card:
-			case <-done:
+			case gen <- card:
+			case <-ctx.Done():
 				log.Debug().Msg("Closing random card generator")
 				return
 			}
 		}
 	}()
 
-	return g, func() { close(done) }
+	return gen, nil
+}
+
+func (cs *cardService) shouldCardBeDisplayed(cid CardId) bool {
+	recalls := cs.CountRecallAttempts(cid)
+	confidence := cs.EstimateCardConfidence(recalls)
+
+	if confidence <= 50 {
+		return true
+	}
+
+	w := (100 - confidence) / 5
+	bias := 2
+	return rand.Intn(w+bias) < w
+}
+
+func (cs *cardService) filterCardsStreamByConfidence(ctx context.Context, in <-chan Card) <-chan Card {
+	out := make(chan Card)
+	go func() {
+		defer close(out)
+		for c := range in {
+			if !cs.shouldCardBeDisplayed(c.ID) {
+				continue
+			}
+			select {
+			case out <- c:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	return out
+}
+
+func (cs *cardService) FilteredRandomCardGenerator(ctx context.Context) (<-chan Card, error) {
+	stream, err := cs.RandomCardGenerator(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// fan out cards to filters
+	workers := make([]<-chan Card, runtime.NumCPU())
+	for i := 0; i < len(workers); i++ {
+		workers[i] = cs.filterCardsStreamByConfidence(ctx, stream)
+	}
+
+	// fan in filtered cards
+	var wg sync.WaitGroup
+	res := make(chan Card)
+
+	multiplex := func(in <-chan Card) {
+		defer wg.Done()
+		for c := range in {
+			select {
+			case <-ctx.Done():
+				return
+			case res <- c:
+			}
+		}
+	}
+
+	wg.Add(len(workers))
+	for _, w := range workers {
+		go multiplex(w)
+	}
+
+	go func() {
+		defer close(res)
+		wg.Wait()
+	}()
+
+	return res, nil
 }
 
 func (cs *cardService) RecordRecallAttempt(cid CardId, success bool) error {

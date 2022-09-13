@@ -63,6 +63,12 @@ func (s cardStorage) ListCardIds() ([]cards.CardId, error) {
 	return res, nil
 }
 
+func (s cardStorage) ListCards() ([]cards.Card, error) {
+	res := make([]cards.Card, len(s.objects))
+	copy(res, s.objects)
+	return res, nil
+}
+
 func (s cardStorage) ListUsedBuckets() ([]cards.BucketId, error) {
 	buckets := make(map[cards.BucketId]struct{})
 	for _, c := range s.objects {

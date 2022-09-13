@@ -1,5 +1,6 @@
 /bin
 /tmp
+/cmd/debug
 .DS_Store
 .env
 .docker_env
