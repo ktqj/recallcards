@@ -12,7 +12,7 @@ import (
 )
 
 type coll interface {
-	cards.Cards | cards.Recalls
+	~[]cards.Card | ~[]cards.RecallAttempt
 }
 
 func readJsonFile[S coll](p string) (S, error) {

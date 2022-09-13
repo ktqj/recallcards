@@ -177,7 +177,7 @@ func (cs *cardService) filterCardsStreamByConfidence(ctx context.Context, in <-c
 func (cs *cardService) FilteredRandomCardGenerator(ctx context.Context) (<-chan Card, error) {
 	stream, err := cs.RandomCardGenerator(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Could not initialize random card generator: [%w]", err)
 	}
 
 	// fan out cards to filters
