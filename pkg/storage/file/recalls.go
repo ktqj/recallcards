@@ -15,7 +15,7 @@ func (s *recallStorage) InsertRecallAttempt(r cards.RecallAttempt) error {
 	return persistCollection(s.objects, s.filepath)
 }
 
-func (s recallStorage) CountRecallAttempts(cid cards.CardId) cards.RecallSummary {
+func (s recallStorage) RecallSummary(cid cards.CardId) cards.RecallSummary {
 	var res cards.RecallSummary
 	for _, r := range s.objects {
 		if r.CardId != cid {

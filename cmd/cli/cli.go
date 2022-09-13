@@ -75,10 +75,9 @@ func main() {
 	i := 1
 	for card := range generator {
 
-		recalls := cardService.CountRecallAttempts(card.ID)
-		confidence := cardService.EstimateCardConfidence(recalls)
+		recalls := cardService.RecallSummary(card.ID)
 
-		fmt.Fprintf(os.Stdout, "Recall #%d, card [#%d|%d%%|%+v]\n", i, card.ID, confidence, recalls)
+		fmt.Fprintf(os.Stdout, "Recall #%d, card [#%d|%d%%|%+v]\n", i, card.ID, recalls.EstimateConfidence(), recalls)
 
 		_, err := readlineAfter(card.Translation)
 		if err != nil {

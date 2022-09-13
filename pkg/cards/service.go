@@ -24,8 +24,7 @@ type CardService interface {
 	RandomCardGenerator(ctx context.Context) (<-chan Card, error)
 	FilteredRandomCardGenerator(ctx context.Context) (<-chan Card, error)
 	RecordRecallAttempt(cid CardId, result bool) error
-	CountRecallAttempts(cid CardId) RecallSummary
-	EstimateCardConfidence(recalls RecallSummary) int
+	RecallSummary(cid CardId) RecallSummary
 }
 
 type cardService struct {
@@ -34,44 +33,6 @@ type cardService struct {
 
 func NewCardService(repo Repository) CardService {
 	return &cardService{repo: repo}
-}
-
-// EstimateCardConfidence estimates confidence in knowing card's information
-// based on its recalls history. Returns a percentage value, between 0 and 100.
-func (cs *cardService) EstimateCardConfidence(recalls RecallSummary) int {
-	// card was never recalled correctly yet
-	if recalls.Ok == 0 {
-		return 0
-	}
-
-	// weighted difference between correct and failed recalls
-	failWeight := 2
-	diff := recalls.Ok - failWeight*recalls.Fail
-
-	flawlessConfidentDifference := 5
-	if diff >= flawlessConfidentDifference {
-		return 95
-	}
-
-	confidentDifference := 10
-	if diff >= confidentDifference {
-		return 100
-	}
-
-	inconfidentDifference := -10
-	if diff <= inconfidentDifference {
-		return 0
-	}
-
-	// inconfidentDifference < diff < confidentDifference
-	base := 50.0
-	if diff >= 0 {
-		progress := (100.0 - base) / float64(confidentDifference) * float64(diff)
-		return int(base + progress)
-	}
-
-	regress := base / float64(inconfidentDifference) * float64(diff)
-	return int(base - regress)
 }
 
 func (cs *cardService) CreateCard(phrase string, translation string) error {
@@ -140,14 +101,14 @@ func (cs *cardService) RandomCardGenerator(ctx context.Context) (<-chan Card, er
 }
 
 func (cs *cardService) shouldCardBeDisplayed(cid CardId) bool {
-	recalls := cs.CountRecallAttempts(cid)
-	confidence := cs.EstimateCardConfidence(recalls)
+	confidence := cs.RecallSummary(cid).EstimateConfidence()
 
 	if confidence <= 50 {
 		return true
 	}
 
 	w := (100 - confidence) / 5
+	// TODO: should be configurable
 	bias := 2
 	return rand.Intn(w+bias) < w
 }
@@ -231,6 +192,6 @@ func (cs *cardService) RecordRecallAttempt(cid CardId, success bool) error {
 	return nil
 }
 
-func (cs *cardService) CountRecallAttempts(cid CardId) RecallSummary {
-	return cs.repo.CountRecallAttempts(cid)
+func (cs *cardService) RecallSummary(cid CardId) RecallSummary {
+	return cs.repo.RecallSummary(cid)
 }
