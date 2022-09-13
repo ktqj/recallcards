@@ -156,6 +156,9 @@ func (cs *cardService) filterCardsStreamByConfidence(ctx context.Context, in <-c
 	out := make(chan Card)
 	go func() {
 		defer close(out)
+		defer log.Debug().Msg("Closing a card filter")
+
+		log.Debug().Msg("Starting a card filter")
 		for c := range in {
 			if !cs.shouldCardBeDisplayed(c.ID) {
 				continue
@@ -187,8 +190,11 @@ func (cs *cardService) FilteredRandomCardGenerator(ctx context.Context) (<-chan 
 	var wg sync.WaitGroup
 	res := make(chan Card)
 
-	multiplex := func(in <-chan Card) {
+	multiplex := func(ctx context.Context, in <-chan Card) {
 		defer wg.Done()
+		defer log.Debug().Msg("Closing a multiplexer")
+
+		log.Debug().Msg("Starting a multiplexer")
 		for c := range in {
 			select {
 			case <-ctx.Done():
@@ -200,12 +206,13 @@ func (cs *cardService) FilteredRandomCardGenerator(ctx context.Context) (<-chan 
 
 	wg.Add(len(workers))
 	for _, w := range workers {
-		go multiplex(w)
+		go multiplex(ctx, w)
 	}
 
 	go func() {
 		defer close(res)
 		wg.Wait()
+		log.Debug().Msg("Closing filtered cards generator")
 	}()
 
 	return res, nil
@@ -221,7 +228,6 @@ func (cs *cardService) RecordRecallAttempt(cid CardId, success bool) error {
 	if err != nil {
 		return err
 	}
-	// TODO: count successfull attempts and move to another bucket if necessary
 	return nil
 }
 
