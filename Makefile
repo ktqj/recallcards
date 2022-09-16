@@ -8,7 +8,7 @@ clean:
 	go fmt ./...
 
 lint:
-	golangci-lint run -v
+	golangci-lint run -c ./golangci-lint.yaml ./...
 
 ################
 
@@ -39,7 +39,7 @@ debug: create-tmp compile-debug
 
 #################
 test:
-	go test -v -count=1  ./...
+	go test -v --cover -count=1  ./...
 
 bench:
 	go test -v -bench=. -benchmem ./...

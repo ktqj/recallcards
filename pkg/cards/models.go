@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// TODO: buckets idea may not be useful or practical
 type BucketId uint8
 
 const (

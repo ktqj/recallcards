@@ -16,6 +16,8 @@ import (
 
 	"net/http"
 	_ "net/http/pprof"
+	// ??
+	// "https://pkg.go.dev/golang.org/x/term"
 )
 
 func readlineAfter(prompt string) (string, error) {
@@ -61,7 +63,6 @@ func main() {
 	generator, err := cardService.FilteredRandomCardGenerator(ctx)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize cards stream")
-		return
 	}
 
 	go func() {
@@ -74,7 +75,6 @@ func main() {
 
 	i := 1
 	for card := range generator {
-
 		recalls := cardService.RecallSummary(card.ID)
 
 		fmt.Fprintf(os.Stdout, "Recall #%d, card [#%d|%d%%|%+v]\n", i, card.ID, recalls.EstimateConfidence(), recalls)
@@ -85,22 +85,26 @@ func main() {
 		}
 
 		fmt.Print(card.Phrase + "\n")
-		for {
-			answer, _ := readlineAfter("Got it right? [y/n]\n")
-			if answer == "y" {
-				err := cardService.RecordRecallAttempt(card.ID, true)
-				if err != nil {
-					log.Fatal().Err(err).Msgf("Could not record a recall attempt")
-				}
-				break
-			} else if answer == "n" {
-				err := cardService.RecordRecallAttempt(card.ID, false)
-				if err != nil {
-					log.Fatal().Err(err).Msgf("Could not record a recall attempt")
-				}
-				break
-			}
+		err = cardService.RecordRecallAttempt(card.ID, gotItRight())
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Could not record a recall attempt")
 		}
 		i++
+	}
+}
+
+func gotItRight() bool {
+	for {
+		answer, err := readlineAfter("Got it right? [y/n]\n")
+		if err != nil {
+			// could this be an infinite loop?
+			continue
+		}
+		switch answer {
+		case "y", "Y":
+			return true
+		case "n", "N":
+			return false
+		}
 	}
 }

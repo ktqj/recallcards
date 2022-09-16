@@ -1,9 +1,10 @@
 package file
 
 import (
-	"example.com/recallcards/pkg/cards"
 	"path/filepath"
 	"reflect"
+
+	"example.com/recallcards/pkg/cards"
 )
 
 type repository struct {
