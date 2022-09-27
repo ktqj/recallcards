@@ -66,7 +66,7 @@ func main() {
 	srv := NewServer(controller)
 
 	httpServer := &http.Server{
-		Addr:         "127.0.0.1:8080",
+		Addr:         "0.0.0.0:8080",
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,

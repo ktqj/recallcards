@@ -1,20 +1,22 @@
-# syntax=docker/dockerfile:1
-FROM golang:1.18-alpine
+FROM golang:1.18-alpine as build
+WORKDIR /go/src/app/
+COPY . /go/src/app/
+RUN go generate ./... && go mod download && go build -o /bin/recallcards_web ./cmd/http/main.go
 
-RUN mkdir /var/tmp/file_storage
+##################
 
-RUN mkdir /app
-WORKDIR /app
-
-COPY go.mod .
-# COPY go.sum .
-RUN go mod download
-
-COPY . .
-
-RUN go build /app/cmd/http/main.go
-RUN mv /app/main /usr/local/bin/
-
+FROM alpine:3.6
 EXPOSE 8080
 
-CMD export $(cat /app/.docker_env) && main
+ENV JSON_STORAGE_DIR /file_storage
+ENV TEMPLATES_DIR /templates
+
+RUN mkdir ${JSON_STORAGE_DIR}
+RUN mkdir ${TEMPLATES_DIR}
+
+COPY /pkg/web/templates ${TEMPLATES_DIR}
+COPY --from=build /bin/recallcards_web /recallcards_web
+
+CMD ["/recallcards_web"]
+
+

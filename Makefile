@@ -46,11 +46,8 @@ bench:
 
 ################
 
-build-image:
-	docker build -t recallcards .
+build-web-image:
+	docker build -t recallcards_web .
 
-docker-run: build-image
-	docker run --init -p 6060:8080 -v $$(pwd)/tmp/file_storage/:/var/tmp/file_storage --name localtest --rm recallcards
-
-up: create-tmp build-image
-	docker-compose up
+docker-run-web: build-web-image
+	docker run --init -p 6060:8080 -v $$(pwd)/tmp/file_storage/:/file_storage --name localtest --rm recallcards_web

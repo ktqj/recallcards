@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"text/template"
 
 	"example.com/recallcards/pkg/cards"
@@ -56,7 +58,7 @@ func (c *controller) CreateCardJson(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *controller) IndexHandler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("pkg/web/templates/create_card.html")
+	t, err := template.ParseFiles(filepath.Join(os.Getenv("TEMPLATES_DIR"), "create_card.html"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
