@@ -44,7 +44,10 @@ func writeJsonFile[S coll](data S, path string) error {
 	}
 	defer f.Close()
 
-	err = json.NewEncoder(f).Encode(data)
+	encoder := json.NewEncoder(f)
+	encoder.SetIndent("", "  ")
+
+	err = encoder.Encode(&data)
 	if err != nil {
 		return err
 	}

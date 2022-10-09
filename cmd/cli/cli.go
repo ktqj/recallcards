@@ -60,7 +60,9 @@ func main() {
 	repository := initFileRepository()
 	cardService := cards.NewCardService(repository)
 
-	generator, err := cardService.FilteredRandomCardGenerator(ctx)
+	cappedAt := uint32(10)
+	repeats := uint32(2)
+	generator, err := cardService.CappedRepeatedFilteredRandomCardGenerator(ctx, cappedAt, repeats)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize cards stream")
 	}
@@ -92,6 +94,7 @@ func main() {
 		i++
 	}
 }
+
 
 func gotItRight() bool {
 	for {

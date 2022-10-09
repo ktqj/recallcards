@@ -23,6 +23,8 @@ type CardService interface {
 	RandomCard() (Card, error)
 	RandomCardGenerator(ctx context.Context) (<-chan Card, error)
 	FilteredRandomCardGenerator(ctx context.Context) (<-chan Card, error)
+	CappedFilteredRandomCardGenerator(ctx context.Context, c uint32) (<-chan Card, error)
+	CappedRepeatedFilteredRandomCardGenerator(ctx context.Context, c uint32, r uint32) (<-chan Card, error)
 	RecordRecallAttempt(cid CardId, result bool) error
 	RecallSummary(cid CardId) RecallSummary
 }
@@ -133,6 +135,66 @@ func (cs *cardService) filterCardsStreamByConfidence(ctx context.Context, in <-c
 	}()
 
 	return out
+}
+
+func (cs *cardService) CappedRepeatedFilteredRandomCardGenerator(ctx context.Context, c uint32, r uint32) (<-chan Card, error) {
+	generator, err := cs.CappedFilteredRandomCardGenerator(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(chan Card)
+	go func() {
+		defer close(res)
+		history := make([]Card, 0, c)
+		for card := range generator {
+			if r != 0 {
+				history = append(history, card)
+			}
+			select {
+			case <-ctx.Done():
+				return
+			case res <- card:
+			}
+		}
+		for range make([]struct{}, r) {
+			for _, card := range history {
+				select {
+				case <-ctx.Done():
+					return
+				case res <- card:
+				}
+			}
+		}
+	}()
+
+	return res, nil
+}
+
+func (cs *cardService) CappedFilteredRandomCardGenerator(ctx context.Context, c uint32) (<-chan Card, error) {
+	generator, err := cs.FilteredRandomCardGenerator(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(chan Card)
+	go func() {
+		defer close(res)
+		count := uint32(0)
+		for card := range generator {
+			if count == c {
+				break
+			}
+			select {
+			case <-ctx.Done():
+				return
+			case res <- card:
+			}
+			count++
+		}
+	}()
+
+	return res, nil
 }
 
 func (cs *cardService) FilteredRandomCardGenerator(ctx context.Context) (<-chan Card, error) {
